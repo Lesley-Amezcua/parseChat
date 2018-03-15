@@ -7,7 +7,7 @@
 //
 
 import UIKit
-
+import Parse
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -16,7 +16,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        Parse.initialize(with: ParseClientConfiguration(block:{(configuration: ParseMutableClientConfiguration) in
+            configuration.applicationId = "CodePath-Parse"
+            configuration.server = "https://parsechatcodepath.herokuapp.com/parse"
+            //configuration.applicationId = "parseChat"
+            //configuration.clientKey = "sampleMasterKey2"
+            //configuration.server = "http://parse-chat-lab.herokuapp.com/parse"
+        }))
+        NotificationCenter.default.addObserver(forName: Notification.Name("didLogout"), object: nil, queue: OperationQueue.main) { (Notification) in
+            print("Logout received")
+            self.logOut()
+        }
+        if PFUser.current() != nil{
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            window?.rootViewController =
+                storyboard.instantiateViewController(withIdentifier: "feedNav")
+        }
         return true
+    }
+    func logOut() {
+        PFUser.logOutInBackground(block: { (error) in
+            if let error = error {
+                print(error.localizedDescription)
+            } else {
+                print("Successful loggout")
+                let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                let loginViewController = storyboard.instantiateViewController(withIdentifier: "login")
+                self.window?.rootViewController = loginViewController
+            }
+        })
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
